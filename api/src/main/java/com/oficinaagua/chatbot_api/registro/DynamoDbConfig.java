@@ -8,14 +8,17 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
+import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
+import software.amazon.awssdk.services.dynamodb.DynamoDbClientBuilder;
 
 /**
  * HU-38: cliente de DynamoDB para el registro de prompt-response.
- * Los tiempos de espera son cortos para que un DynamoDB lento o caído
- * no retrase la respuesta al usuario.
+ * Con DYNAMODB_ENDPOINT usa DynamoDB Local (desarrollo); vacío, usa DynamoDB de AWS con las
+ * credenciales del entorno (en EC2, el rol de la instancia: no hay claves en el código).
+ * Los tiempos de espera son cortos para que un DynamoDB lento o caído no retrase la respuesta.
  */
 @Configuration
 public class DynamoDbConfig {
@@ -26,14 +29,18 @@ public class DynamoDbConfig {
             @Value("${chatbot.dynamodb.region}") String region,
             @Value("${chatbot.dynamodb.access-key}") String accessKey,
             @Value("${chatbot.dynamodb.secret-key}") String secretKey) {
-        return DynamoDbClient.builder()
-                .endpointOverride(URI.create(endpoint))
+        DynamoDbClientBuilder builder = DynamoDbClient.builder()
                 .region(Region.of(region))
-                .credentialsProvider(StaticCredentialsProvider.create(
-                        AwsBasicCredentials.create(accessKey, secretKey)))
                 .overrideConfiguration(config -> config
                         .apiCallTimeout(Duration.ofSeconds(2))
-                        .apiCallAttemptTimeout(Duration.ofSeconds(1)))
-                .build();
+                        .apiCallAttemptTimeout(Duration.ofSeconds(1)));
+        if (endpoint == null || endpoint.isBlank()) {
+            builder.credentialsProvider(DefaultCredentialsProvider.builder().build());
+        } else {
+            builder.endpointOverride(URI.create(endpoint))
+                    .credentialsProvider(StaticCredentialsProvider.create(
+                            AwsBasicCredentials.create(accessKey, secretKey)));
+        }
+        return builder.build();
     }
 }

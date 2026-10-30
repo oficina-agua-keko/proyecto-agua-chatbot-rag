@@ -1,0 +1,9 @@
+# Contexto de la imagen del api (docker-compose.aws.yml): solo hace falta api/ y content/.
+**/node_modules
+**/target
+**/dist
+**/dist-demo
+.env
+**/secrets.properties
+.git
+.idea
