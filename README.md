@@ -2,6 +2,12 @@
 
 Fase 2 · Desarrollo Web 2026 · Universidad Mariano Gálvez
 
+## Colaboradores
+
+Karen Yamileth Jiménez Galicia         0905-23-7626
+
+Oliver Isaac Godoy Salguero            0905-23-10816
+
 ## Descripción
 
 Este repositorio contiene la Feature 2 del sistema de la Oficina de Agua: un
